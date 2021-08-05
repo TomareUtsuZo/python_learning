@@ -7,6 +7,7 @@ I feel I should create a library that implements the function, input_incorrectne
 It took me aproximately 12 hours, across 20, to code this, on 2021-08-05
 """
 
+NUMBER_OF_DISKS = int(input("How are do you want this to be? (5 is normal) ")) # More disks equal more difficulty
 
 class Tower():
     def __init__(self, name):
@@ -15,27 +16,33 @@ class Tower():
         self.Assign_disks_at_start(name)
 
     def Draw_a_tower(self, what_on_tower):
-        # what_on_tower = self.disks
-        the_tower = [[],[],[],[],[],[], f'      {self.name}      ']
-        the_disks = ['     | |     ',
-                     '    @| 1@    ',
-                     '   @@| 2@@   ',
-                     '  @@@| 3@@@  ',
-                     ' @@@@| 4@@@@ ',
-                     '@@@@@| 5@@@@@']
-        for i in range(6):
+        the_tower = [[] for _ in range(NUMBER_OF_DISKS + 1) ]
+        tower_label = f'{" " * (NUMBER_OF_DISKS + 1)} {self.name}{" " * (NUMBER_OF_DISKS + 2)}'
+        the_tower.append(tower_label)
+        the_disks = []
+        for i in range(NUMBER_OF_DISKS + 1):
+            if i == 0:
+                col = '|'
+            else:
+                col = i
+            white_space = ' ' * ((NUMBER_OF_DISKS + 1) - i)
+            disk_space = '@' * i
+            disk = f'{white_space}{disk_space}| {col}{disk_space}{white_space}'
+            the_disks.append(disk)
+        for i in range(NUMBER_OF_DISKS + 1):
             the_tower[i] = the_disks[what_on_tower[i]]
         return the_tower
 
     def Assign_disks_at_start(self, name):
         if name == 'A':
-            self.disks = [0, 1, 2, 3, 4, 5]
+            self.disks = []
+            self.disks.extend(range(NUMBER_OF_DISKS + 1))
         else:
-            self.disks = [0, 0, 0, 0, 0, 0]
+            self.disks = [0] * (NUMBER_OF_DISKS + 1)
 
     def Take_top_disk_off(self):
         to_send = None
-        for i in range(6):
+        for i in range(NUMBER_OF_DISKS + 1):
             if self.disks[i] != 0:
                 to_send = self.disks[i]
                 self.disks[i] = 0
@@ -45,15 +52,19 @@ class Tower():
     def Put_disk_on(self,disk):
         HAS_NO_DISK = 0
         could_fit = False
-        for i in range(5):
+        for i in range(NUMBER_OF_DISKS):
             next_disk = i + 1
-            if self.disks[next_disk] != HAS_NO_DISK:
-                if self.disks[next_disk] > disk:
+            next_disk = self.disks[next_disk]
+            if next_disk != HAS_NO_DISK:
+                if next_disk > disk:
                     self.disks[i] = disk
                     could_fit = True
                     break
-        if self.disks[5] == HAS_NO_DISK:
-            self.disks[5] = disk
+                else:
+                    could_fit = False
+                    break
+        if self.disks[NUMBER_OF_DISKS] == HAS_NO_DISK:
+            self.disks[NUMBER_OF_DISKS] = disk
             could_fit = True
         return could_fit
 
@@ -62,7 +73,7 @@ def draw_towers():
     to_draw = []
     for tower in towers:
         to_draw.append(tower.Draw_a_tower(tower.disks))
-    for lvl in range(7):
+    for lvl in range(NUMBER_OF_DISKS + 2):
         for tower in range(3):
             print(to_draw[tower][lvl], end='')
         print('')
@@ -73,7 +84,7 @@ def get_players_move_order():
     base_msg = 'Enter the letters of "from" and "to" towers, or QUIT.\n'\
                                                    '(e.g., AB to moves a disk from tower A to tower B.)'
     print(base_msg)
-    user_move_request = input()
+    user_move_request = input('?')
     user_incorrect, error_msg = input_incorrectness_test(user_move_request, all_correct_ans)
     if not user_incorrect and (user_move_request.lower() != 'quit'):
         user_correct, error_msg = does_it_follow_the_rules(user_move_request)
@@ -83,6 +94,9 @@ def get_players_move_order():
         print(f'{error_msg}\n{base_msg}')
         user_move_request = input("?")
         user_incorrect, error_msg = input_incorrectness_test(user_move_request, all_correct_ans)
+        if not user_incorrect and (user_move_request.lower() != 'quit'):
+            user_correct, error_msg = does_it_follow_the_rules(user_move_request)
+            user_incorrect = not user_correct
 
     return user_move_request
 
@@ -121,7 +135,8 @@ def input_incorrectness_test(user_input, range_of_answers, case_matters=False):
 
 def test_for_win_condition():
     win = False
-    tower_complete = [0, 1, 2, 3, 4, 5]
+    tower_complete = []
+    tower_complete.extend(range(NUMBER_OF_DISKS + 1))
     if towers[1].disks == tower_complete or towers[2].disks == tower_complete:
         win = True
     return win
